@@ -39,6 +39,7 @@ parseLinesAsHands (x:xs) handResultGetter = (parseLine x handResultGetter) : (pa
 parseLine :: String -> (String -> Int -> HandDescriptor) -> HandDescriptor
 parseLine l handResultGetter = let splt = (splitOn " " l) in handResultGetter (head(splt)) (read (last(splt)) :: Int)
 
+-- Given a hand as a string and the corresponding bet, parses it into a usable format
 getHandResultP1 :: String -> Int -> HandDescriptor
 getHandResultP1 hand bet = do 
     let cards = parseStrToCard hand 
@@ -69,6 +70,7 @@ frequency xs = toList (fromListWith (+) [(x, 1) | x <- xs])
 
 -- Part 2 Functions
 
+-- Given a hand as a string and the corresponding bet, parses it into a usable format
 getHandResultP2 :: String -> Int -> HandDescriptor
 getHandResultP2 hand bet = do 
     -- Parse using P2 parse function so we have Js as "Joker" in code
@@ -77,7 +79,7 @@ getHandResultP2 hand bet = do
     -- Remove all of the Js from the freq list and get how many there were 
     let freqNoJs = removeJsAndGetNumber freq
     let numJs = snd(freqNoJs)
-    let sortedFreq = reverse((sortBy (compare `on` sec)) (fst(freqNoJs))) 
+    let sortedFreq = reverse((sortBy (compare `on` sec)) (fst(freqNoJs))) -- Sort from most to least frequent
     -- Update the list by adding the Js to the highest freq value
     let updatedFreqList = updateFreqList sortedFreq numJs
     -- Do the same parsing as P1
@@ -132,19 +134,8 @@ parseStrToCardP2 "" = []
 parseStrToCardP2 (x:xs) = (parseCharToCardP2 x) : (parseStrToCardP2 xs)
 
 parseCharToCardP2 :: Char -> Card
-parseCharToCardP2 '2' = Two
-parseCharToCardP2 '3' = Three
-parseCharToCardP2 '4' = Four
-parseCharToCardP2 '5' = Five
-parseCharToCardP2 '6' = Six
-parseCharToCardP2 '7' = Seven
-parseCharToCardP2 '8' = Eight
-parseCharToCardP2 '9' = Nine
-parseCharToCardP2 'T' = T
 parseCharToCardP2 'J' = Joker
-parseCharToCardP2 'Q' = Q
-parseCharToCardP2 'K' = K
-parseCharToCardP2 'A' = A
+parseCharToCardP2 x = parseCharToCard x
 
 -- Use for the sorting 
 sec :: (a, b) -> b
