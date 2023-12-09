@@ -9,7 +9,7 @@ import Data.Function (on)
 main :: IO()
 main = do
     -- Part 1
-    contents <- readFile "Day5/input"
+    contents <- readFile "Day05/input"
     let relevantBits = splitOn [""] (lines contents)
     let seeds = obtainSeeds((relevantBits !! 0) !! 0)
     let maps = parseAllMaps(removeUnnecessaryHeader(drop 1 relevantBits))

@@ -1,7 +1,7 @@
 main :: IO()
 main = do
     -- Part 1
-    contents <- readFile "Day9/input"
+    contents <- readFile "Day09/input"
     let sequences = parseLines(lines contents)
     let diffLists = map getFullDifferenceList sequences
     putStrLn (show(sum(map getNextNumber diffLists)))
@@ -11,8 +11,7 @@ main = do
 
 -- Generate the difference list for a sequence
 getDifferenceList :: [Int] -> [Int]
-getDifferenceList (x_1 : x_2 : []) = [x_2 - x_1]
-getDifferenceList (x_1 : x_2 : xs) = (x_2 - x_1) : getDifferenceList (x_2 : xs)
+getDifferenceList xs = zipWith (-) (tail xs) xs
 
 -- Get all of the difference lists for all the way down to 0s
 getFullDifferenceList :: [Int] -> [[Int]]

@@ -11,7 +11,7 @@ import Data.Function (on)
 main :: IO()
 main = do
     -- Part 1
-    contents <- readFile "Day6/input"
+    contents <- readFile "Day06/input"
     let times = parseLine((lines contents) !! 0)
     let distances = parseLine((lines contents) !! 1)
     putStrLn (show(foldr (*) 1 (waysToSatisfy times distances)))

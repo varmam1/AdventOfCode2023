@@ -11,7 +11,7 @@ import Data.String.Utils (rstrip)
 main :: IO()
 main = do
     -- Part 1
-    contents <- readFile "Day8/input"
+    contents <- readFile "Day08/input"
     let movements = Data.String.Utils.rstrip((lines contents) !! 0)
     let graph = Data.List.drop 2 (lines contents)
     let mappedGraph = makeMapFromLines graph

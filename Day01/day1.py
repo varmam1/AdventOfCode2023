@@ -1,4 +1,4 @@
-f = open("/mnt/c/Users/varmam/Documents/Projects/AdventOfShit/input", "r")
+f = open("Day01/input", "r")
 numbers = []
 for x in f:
   s = x.strip()

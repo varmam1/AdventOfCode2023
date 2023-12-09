@@ -6,7 +6,7 @@ import Debug.Trace
 
 main :: IO()
 main = do
-    contents <- readFile "Day4/input"
+    contents <- readFile "Day04/input"
     putStrLn (show(sum(part1(lines contents))))
     putStrLn (show(sum(getNumberOfCards(numberOfMatchesAllLines(lines(contents))))))
 

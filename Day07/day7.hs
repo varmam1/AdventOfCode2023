@@ -22,7 +22,7 @@ data HandDescriptor = HighCard([Card], Int)
 main :: IO()
 main = do
     -- Part 1
-    contents <- readFile "Day7/input"
+    contents <- readFile "Day07/input"
     let sortedHands = sort(parseLinesAsHands (lines contents) getHandResultP1)
     let ans1 = sum(zipWith (*) [1..] (getAllOrderedBets sortedHands))
     putStrLn (show(ans1))
