@@ -8,14 +8,14 @@ main = do
     contents <- readFile "Day10/input"
     let fullMap = lines contents
     let (rowOfS, colOfS) = findIndexOfS fullMap 0
-    let nextIndex = findNextValAfterS (fullMap) (rowOfS, colOfS)
-    let totalLength = findNumSteps (fullMap) nextIndex (rowOfS, colOfS) 1
-    putStrLn (show(totalLength `div` 2))
+    let nextIndex = findNextValAfterS fullMap (rowOfS, colOfS)
+    let totalLength = findNumSteps fullMap nextIndex (rowOfS, colOfS) 1
+    print (totalLength `div` 2)
     
     -- Part 2
     let allLoopIndices = findAllLoopElems fullMap nextIndex (rowOfS, colOfS)
     let loopMap = reverse(generateLoopMap allLoopIndices (length fullMap) fullMap) -- Generates the map again with just the loop
-    putStrLn (show(sum(map (getInsideLoopInLineWrapper (findValOfS loopMap (rowOfS, colOfS))) loopMap)))
+    print (sum(map (getInsideLoopInLineWrapper (findValOfS loopMap (rowOfS, colOfS))) loopMap))
 
 -- Finds total length of the loop
 findNumSteps :: [String] -> (Int, Int) -> (Int, Int) -> Int -> Int
@@ -98,16 +98,16 @@ findAllLoopElems :: [String] -> (Int, Int) -> (Int, Int) -> [(Int, Int)]
 findAllLoopElems map (currentRow, currentCol) (lastRow, lastCol) 
     | (map !! currentRow) !! currentCol == 'S' = [(currentRow, currentCol)]
     | otherwise = 
-        (currentRow, currentCol) : (findAllLoopElems map (findNextStep map (currentRow, currentCol) (lastRow, lastCol)) (currentRow, currentCol))
+        (currentRow, currentCol) : findAllLoopElems map (findNextStep map (currentRow, currentCol) (lastRow, lastCol)) (currentRow, currentCol)
 
 -- Generates the map which just has the loop and if its not a part of the loop, it's a .
 generateLoopMap :: [(Int, Int)] -> Int -> [String] -> [String]
 generateLoopMap indices (-1)  _ = []
-generateLoopMap indices row origMap = (getLoopStr (map (snd) (filter (\(x, _) -> x == row) indices)) (replicate 140 '.') (origMap !! row)) : (generateLoopMap indices (row - 1) origMap)
+generateLoopMap indices row origMap = getLoopStr (map snd (filter (\(x, _) -> x == row) indices)) (replicate 140 '.') (origMap !! row) : generateLoopMap indices (row - 1) origMap
 
 getLoopStr :: [Int] -> String -> String -> String
 getLoopStr [] str  _ = str
-getLoopStr (index:indices) str origLine = getLoopStr (indices) (replaceCharAtIndex index (origLine !! index) str) origLine
+getLoopStr (index:indices) str origLine = getLoopStr indices (replaceCharAtIndex index (origLine !! index) str) origLine
 
 safeTail :: [a] -> [a]
 safeTail [] = []

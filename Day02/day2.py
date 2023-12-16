@@ -1,4 +1,4 @@
-f = open("Day2/input", "r")
+f = open("Day02/input", "r")
 # config = [12, 13, 14] # red green blue
 ids = []
 rolling_sum = 0

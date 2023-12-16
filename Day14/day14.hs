@@ -7,13 +7,13 @@ main :: IO()
 main = do
     -- Part 1
     contents <- readFile "Day14/input"
-    putStrLn (show(calculateLoad(northTilt (lines contents))))
+    print (calculateLoad(northTilt (lines contents)))
 
     -- Part 2
-    putStrLn (show(calculateLoad (getNthValue (lines contents) 1000000000)))
+    print (calculateLoad (getNthValue (lines contents) 1000000000))
 
 calculateLoad :: [String] -> Int
-calculateLoad xs = sum(zipWith (*) (reverse [1..length(xs)]) (map (length . filter (=='O')) xs))
+calculateLoad xs = sum(zipWith (*) (reverse [1..length xs]) (map (length . filter (=='O')) xs))
 
 -- All of the tilt directions
 northTilt :: [String] -> [String]
@@ -33,8 +33,8 @@ tilt str = tiltHelper str 0
 tiltHelper :: String -> Int -> String
 tiltHelper       "" numDots = replicate numDots '.'
 tiltHelper ('.':xs) numDots = tiltHelper xs (numDots + 1)
-tiltHelper ('#':xs) numDots = (replicate numDots '.') ++ ('#' : (tiltHelper xs 0))
-tiltHelper   (x:xs) numDots =  x : (tiltHelper xs numDots)
+tiltHelper ('#':xs) numDots = replicate numDots '.' ++ ('#' : tiltHelper xs 0)
+tiltHelper   (x:xs) numDots =  x : tiltHelper xs numDots
 
 -- Do the entire spin cycle 
 doSpinCycle :: [String] -> [String]
@@ -43,8 +43,8 @@ doSpinCycle = eastTilt . southTilt . westTilt . northTilt
 -- Find a cycle and return ((board, firstValSeeing), secondTime)
 detectCycle :: Map.Map [String] Int -> [String] -> Int -> (([String], Int), Int)
 detectCycle m xs 0 = detectCycle (Map.insert xs 0 m) xs 1
-detectCycle m xs n = 
-    let result = doSpinCycle (xs) in
+detectCycle m xs n =
+    let result = doSpinCycle xs in
         case Map.lookup result m of
             Nothing -> detectCycle (Map.insert result n m) result (n+1)
             Just x -> ((result, x), n)
@@ -53,7 +53,7 @@ detectCycle m xs n =
 getNthValue :: [String] -> Int -> [String]
 getNthValue xs n = do
     let cycle = detectCycle Map.empty xs 0
-    let firstSeeing = snd(fst(cycle))
-    let cycleLength = snd(cycle) - firstSeeing
+    let firstSeeing = snd(fst cycle)
+    let cycleLength = snd cycle - firstSeeing
     let remainingToDo = n - (firstSeeing + ((n - firstSeeing) `div` cycleLength)*cycleLength)
-    (iterate (doSpinCycle) (fst(fst(cycle)))) !! remainingToDo
+    iterate doSpinCycle (fst(fst cycle)) !! remainingToDo
