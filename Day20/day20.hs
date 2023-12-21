@@ -19,7 +19,7 @@ main = do
     let cycles = getAllFourCycles paths
     let cycleEndNodeTemp = getFourConjunctions paths
     let cycleEndNode = map (\endNode -> head (getAllInputs endNode paths)) cycleEndNodeTemp
-    print (foldr (lcm . processPulsesTillEnd 1 updatedState paths) 1 cycleEndNode)
+    print (foldr lcm 1 (processPulsesTillEnd 1 updatedState paths cycleEndNode [] []))
 
 
 -- A nicer Queue interface rather than using Sequence.|> to push, purely for aesthetics
@@ -170,24 +170,32 @@ getAllFourCycles paths =
     map (getAllNodes paths) (getFourConjunctions paths)
 
 -- Want to process pulses until we see a Low from the endNode
-processPulsesTillEnd :: Int -> State -> Paths -> String -> Int
-processPulsesTillEnd n cycleState cyclePaths endNode =
-    let (seen, newState) = processPulseP2 (createQueue (("Button", Low), "broadcaster")) cycleState cyclePaths endNode in
-        if seen then n
-        else processPulsesTillEnd (n+1) newState cyclePaths endNode
+-- We keep track of the cycles we already computed and continue on until all endnodes have a cycle length associated to it
+processPulsesTillEnd :: Int -> State -> Paths -> [String] -> [Int] -> [String] -> [Int]
+processPulsesTillEnd n cycleState cyclePaths endNode foundIndices foundEndNodes =
+    if length foundIndices == length endNode then foundIndices
+    else
+        let (seen, newState) = processPulseP2 (createQueue (("Button", Low), "broadcaster")) cycleState cyclePaths endNode foundEndNodes in
+            if seen /= "" then
+                if seen `elem` foundEndNodes then
+                    processPulsesTillEnd (n+1) newState cyclePaths endNode foundIndices foundEndNodes
+                else
+                    processPulsesTillEnd (n+1) newState cyclePaths endNode (n:foundIndices) (seen:foundEndNodes)
+            else processPulsesTillEnd (n+1) newState cyclePaths endNode foundIndices foundEndNodes
 
 -- Returns when it sees the endstate mentioned has outputted a low
-processPulseP2 :: Queue Instruction -> State -> Paths -> String -> (Bool, State)
-processPulseP2 q state paths endNode =
-    if isQueueEmpty q then (False, state)
+-- Keeps track of what cycles we've already computed so we dont return it again
+processPulseP2 :: Queue Instruction -> State -> Paths -> [String] -> [String] -> (String, State)
+processPulseP2 q state paths endNode seenEndNodes =
+    if isQueueEmpty q then ("", state)
     else
         let (((oldModule, sig), newModuleName), updatedQueue) = pop q in
-            if oldModule == endNode && sig == Low && elem newModuleName (getFourConjunctions paths) then (True, state)
-            else if sig == None then processPulseP2 updatedQueue state paths endNode
+            if elem oldModule endNode && notElem oldModule seenEndNodes && sig == Low && elem newModuleName (getFourConjunctions paths) then (oldModule, state)
+            else if sig == None then processPulseP2 updatedQueue state paths endNode seenEndNodes
             else
                 case Map.lookup newModuleName state of
                     Just newModule ->
                         let (updatedNewModule, outputtedSignal) = applyModule oldModule sig newModule in
                         let pushedUpdatedQueue = pushAll updatedQueue (affectedModules paths newModuleName outputtedSignal) in
-                        processPulseP2 pushedUpdatedQueue (Map.insert newModuleName updatedNewModule state) paths endNode
-                    Nothing -> processPulseP2 updatedQueue state paths endNode
+                        processPulseP2 pushedUpdatedQueue (Map.insert newModuleName updatedNewModule state) paths endNode seenEndNodes
+                    Nothing -> processPulseP2 updatedQueue state paths endNode seenEndNodes
