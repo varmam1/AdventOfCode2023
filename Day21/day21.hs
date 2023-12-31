@@ -1,10 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 import Data.List
-import Data.List.Split
-import qualified Data.Map as Map
 import qualified Data.Set as Set
-import qualified Data.Sequence as Sequence
-import Debug.Trace
 import Data.Bifunctor
 
 main :: IO()
@@ -13,11 +9,12 @@ main = do
     contents <- readFile "Day21/input"
     let grid = lines contents
     let (sX, sY) = findS grid
-    print (numSpots grid (sX, sY) 64)
+    let numSpotsPerN = numSpots grid (sX, sY) (65 + 131*2)
+    print (numSpotsPerN !! 64)
 
-    let v1 = numSpots grid (sX, sY) 65
-    let v2 = numSpots grid (sX, sY) (65 + 131)
-    let v3 = numSpots grid (sX, sY) (65 + 131*2)
+    let v1 = numSpotsPerN !! 65
+    let v2 = numSpotsPerN !! (65 + 131)
+    let v3 = numSpotsPerN !! (65 + 131*2)
 
     -- Cached values for my input
     -- let v1 = 3884
@@ -46,26 +43,25 @@ enumerate :: [a] -> [(Int, a)]
 enumerate = zip [0..]
 
 findS :: [String] -> Point
-findS grid = head (concatMap ((\row -> map ((\col -> (fst row, col)) . fst) (snd row)) . Data.Bifunctor.second (filter (\col -> snd col == 'S'))) (enumerate (map enumerate grid)))
+findS grid = head (concatMap ((\row -> map ((fst row,) . fst) (snd row)) . Data.Bifunctor.second (filter (\col -> snd col == 'S'))) (enumerate (map enumerate grid)))
 
 checkPoint :: [String] -> Point -> [Point]
-checkPoint grid (x, y) = 
-    if getValueAt grid (x, y) == '#' then []
-    else [(x, y)]
+checkPoint grid (x, y) = [(x, y) | getValueAt grid (x, y) /= '#']
 
 neighbors :: [String] -> Point -> [Point]
 neighbors grid (x, y) = 
     checkPoint grid (x + 1, y) ++ checkPoint grid (x - 1, y) ++ checkPoint grid (x, y + 1) ++ checkPoint grid (x, y - 1)
 
-numSpots :: [String] -> Point -> Int -> Int
-numSpots grid p n = Set.size (takeSteps grid (Set.singleton p) n)
+numSpots :: [String] -> Point -> Int -> [Int]
+numSpots grid p n = snd (takeSteps grid (Set.singleton p) n)
 
 -- Finds the set of spots that can be gotten to for n steps
-takeSteps :: [String] -> Set.Set Point -> Int -> Set.Set Point
-takeSteps grid s 0 = s
+takeSteps :: [String] -> Set.Set Point -> Int -> (Set.Set Point, [Int])
+takeSteps grid s 0 = (s, [1])
 takeSteps grid s n = 
-    let set = takeSteps grid s (n - 1) in
-        Set.fromList (concat (map (neighbors grid) (Set.toList (set))))
+    let (set, soFar) = takeSteps grid s (n - 1) in
+    let newSet = Set.fromList (concatMap (neighbors grid) (Set.toList set)) in
+        (newSet, soFar ++ [Set.size newSet])
 
 getValueAt :: [String] -> Point ->  Char
-getValueAt grid (x, y) = grid !! (mod x (length grid)) !! (mod y (length (head grid)))
+getValueAt grid (x, y) = grid !! mod x (length grid) !! mod y (length (head grid))
